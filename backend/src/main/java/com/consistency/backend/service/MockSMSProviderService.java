@@ -2,7 +2,7 @@ package com.consistency.backend.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +12,15 @@ import org.springframework.stereotype.Service;
  * Active when SMS Twilio credentials are not configured.
  */
 @Service
-@Primary
-@ConditionalOnProperty(name = "sms.twilio.account-sid", havingValue = "", matchIfMissing = true)
+@ConditionalOnExpression("'${sms.twilio.account-sid:}'.isEmpty()")
 public class MockSMSProviderService implements SMSProviderService {
 
     private static final Logger logger = LoggerFactory.getLogger(MockSMSProviderService.class);
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        logger.info("SMS provider: MOCK (No Twilio configuration detected)");
+    }
 
     @Override
     public boolean sendSms(String toNumber, String message) {

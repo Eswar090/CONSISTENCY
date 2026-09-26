@@ -3,7 +3,7 @@ package com.consistency.backend.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,10 +18,15 @@ import java.util.Base64;
  * Uses plain HTTP calls to Twilio REST API — no Twilio SDK needed.
  */
 @Service
-@ConditionalOnProperty(name = "sms.twilio.account-sid", havingValue = "")
+@ConditionalOnExpression("!'${sms.twilio.account-sid:}'.isEmpty()")
 public class TwilioSMSProviderService implements SMSProviderService {
 
     private static final Logger logger = LoggerFactory.getLogger(TwilioSMSProviderService.class);
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        logger.info("SMS provider: TWILIO (Configuration detected)");
+    }
 
     @Value("${sms.twilio.account-sid:}")
     private String accountSid;
