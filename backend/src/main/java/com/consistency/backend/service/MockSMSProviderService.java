@@ -2,17 +2,12 @@ package com.consistency.backend.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
 
 /**
  * Mock SMS provider for development and testing.
  * Logs the message to the console instead of sending a real SMS.
- * Active when SMS Twilio credentials are not configured.
+ * Instantiated by SmsProviderConfiguration when Twilio credentials are absent.
  */
-@Service
-@ConditionalOnExpression("'${sms.twilio.account-sid:}'.isEmpty()")
 public class MockSMSProviderService implements SMSProviderService {
 
     private static final Logger logger = LoggerFactory.getLogger(MockSMSProviderService.class);
@@ -27,7 +22,9 @@ public class MockSMSProviderService implements SMSProviderService {
         // Extract OTP from message for clean logging
         String otp = "";
         if (message.contains("is ")) {
-            otp = message.substring(message.indexOf("is ") + 3, message.indexOf("is ") + 9);
+            int start = message.indexOf("is ") + 3;
+            int end   = Math.min(start + 6, message.length());
+            otp = message.substring(start, end);
         }
         
         System.out.println("\n[MOCK SMS]");
@@ -35,14 +32,12 @@ public class MockSMSProviderService implements SMSProviderService {
         System.out.println("OTP: " + (otp.isEmpty() ? message : otp));
         System.out.println("Expires in: 10 minutes\n");
         
-        logger.info("[MOCK SMS] Sent to {}", toNumber);
+        logger.info("[MOCK SMS] Sent to {}", maskNumber(toNumber));
         return true;
     }
 
     @Override
     public boolean isConfigured() {
-        // Mock provider is always "configured" for development purposes
-        // The controller returns smsConfigured=false so the UI can show the appropriate message
         return false;
     }
 

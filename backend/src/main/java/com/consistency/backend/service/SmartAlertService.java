@@ -206,19 +206,24 @@ public class SmartAlertService {
 
     @Transactional
     public String sendTestSms() {
+        logger.info("[PHASE12 TEST SMS] Controller reached SmartAlertService.sendTestSms()");
         User user = currentUserService.getCurrentUser();
-        System.out.println("[SMART SMS DEBUG] Authenticated user: " + user.getId());
-        System.out.println("[SMART SMS DEBUG] Mobile: " + user.getMobileNumber());
-        System.out.println("[SMART SMS DEBUG] Mobile verified: " + user.getMobileVerified());
+        logger.info("[PHASE12 TEST SMS] Authenticated userId={}", user.getId());
+        logger.info("[PHASE12 TEST SMS] mobileVerified={} mobileNumber={}", user.getMobileVerified(), maskNumber(user.getMobileNumber()));
 
         if (!Boolean.TRUE.equals(user.getMobileVerified()) || user.getMobileNumber() == null) {
             throw new IllegalArgumentException("Please verify your mobile number before sending a test SMS.");
         }
 
+        logger.info("[PHASE12 TEST SMS] SMS provider implementation: {}", smsProviderService.getClass().getName());
+        logger.info("[PHASE12 TEST SMS] smsProviderService.isConfigured()={}", smsProviderService.isConfigured());
+
         String message = "CONSISTENCY test alert: SMS notifications are working correctly.";
-        System.out.println("[SMART SMS DEBUG] Provider Configured: " + smsProviderService.isConfigured());
-        System.out.println("[SMART SMS DEBUG] Mock SMS sending: " + !smsProviderService.isConfigured());
+        logger.info("[PHASE12 TEST SMS] Calling SMS provider with message length={}", message.length());
+
         boolean sent = smsProviderService.sendSms(user.getMobileNumber(), message);
+
+        logger.info("[PHASE12 TEST SMS] sendSms() returned={}", sent);
 
         if (!smsProviderService.isConfigured()) {
             return "Test SMS logged to console (Mock mode).";

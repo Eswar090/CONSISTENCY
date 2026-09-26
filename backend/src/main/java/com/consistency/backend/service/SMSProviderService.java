@@ -3,7 +3,10 @@ package com.consistency.backend.service;
 /**
  * Abstraction for SMS sending. Implementations include:
  * - MockSMSProviderService (development/testing, logs to console)
- * - TwilioSMSProviderService (production, requires credentials)
+ * - SmsProviderConfiguration.LiveTwilioSMSProvider (production, requires credentials)
+ *
+ * Selection is made at startup by SmsProviderConfiguration based on whether
+ * the Twilio credentials are present in the resolved Spring Environment.
  */
 public interface SMSProviderService {
     /**
@@ -16,7 +19,7 @@ public interface SMSProviderService {
 
     /**
      * Returns true if real SMS credentials are configured.
-     * If false, the application should fall back to the mock provider or skip SMS.
+     * If false, the application is running in mock/dev mode.
      */
     boolean isConfigured();
 }
