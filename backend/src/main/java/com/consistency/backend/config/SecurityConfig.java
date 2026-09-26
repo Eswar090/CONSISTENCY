@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(org.springframework.security.config.Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
@@ -47,10 +47,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public org.springframework.web.filter.CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         // Use allowedOriginPatterns so Spring correctly handles allowCredentials(true)
-        // Each entry in allowedOrigins is treated as an exact-match pattern
         for (String origin : allowedOrigins) {
             config.addAllowedOriginPattern(origin.trim());
         }
@@ -59,16 +58,14 @@ public class SecurityConfig {
         config.addAllowedOriginPattern("https://*-eswars-projects-090.vercel.app");
         config.addAllowedOriginPattern("https://consistency-*.vercel.app");
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
-                                         "X-Requested-With", "Access-Control-Request-Method",
-                                         "Access-Control-Request-Headers"));
+        config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return source;
+        return new org.springframework.web.filter.CorsFilter(source);
     }
 
     @Bean
