@@ -54,6 +54,10 @@ public class SecurityConfig {
         for (String origin : allowedOrigins) {
             config.addAllowedOriginPattern(origin.trim());
         }
+        // Always allow Vercel production and Vercel preview deployments
+        config.addAllowedOriginPattern("https://consistency-steel.vercel.app");
+        config.addAllowedOriginPattern("https://*-eswars-projects-090.vercel.app");
+        config.addAllowedOriginPattern("https://consistency-*.vercel.app");
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
                                          "X-Requested-With", "Access-Control-Request-Method",
