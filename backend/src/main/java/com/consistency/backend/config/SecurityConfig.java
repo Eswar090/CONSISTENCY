@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(org.springframework.security.config.Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
@@ -47,25 +47,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public org.springframework.web.filter.CorsFilter corsFilter() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Use allowedOriginPatterns so Spring correctly handles allowCredentials(true)
-        for (String origin : allowedOrigins) {
-            config.addAllowedOriginPattern(origin.trim());
-        }
-        // Always allow Vercel production and Vercel preview deployments
-        config.addAllowedOriginPattern("https://consistency-steel.vercel.app");
-        config.addAllowedOriginPattern("https://*-eswars-projects-090.vercel.app");
-        config.addAllowedOriginPattern("https://consistency-*.vercel.app");
+        config.setAllowedOrigins(List.of(
+            "https://consistency-steel.vercel.app",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return new org.springframework.web.filter.CorsFilter(source);
+        return source;
     }
 
     @Bean
