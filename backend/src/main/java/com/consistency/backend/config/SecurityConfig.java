@@ -49,9 +49,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(allowedOrigins);
+        // Use allowedOriginPatterns so Spring correctly handles allowCredentials(true)
+        // Each entry in allowedOrigins is treated as an exact-match pattern
+        for (String origin : allowedOrigins) {
+            config.addAllowedOriginPattern(origin.trim());
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin",
+                                         "X-Requested-With", "Access-Control-Request-Method",
+                                         "Access-Control-Request-Headers"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
