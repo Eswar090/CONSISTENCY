@@ -153,12 +153,22 @@ public class SmartAlertService {
 
         // Try to send OTP via SMS
         String smsMessage = "CONSISTENCY: Your verification code is " + otpStr + ". Valid for 10 minutes.";
-        boolean sent = smsProviderService.sendSms(mobileNumber, smsMessage);
 
-        if (!sent || !smsProviderService.isConfigured()) {
-            logger.warn("SMS not configured — simulated sending for development testing.");
-            return "Verification code sent to your mobile number (Simulated).";
+        if (!smsProviderService.isConfigured()) {
+            // No Twilio credentials — log OTP to console for development
+            logger.warn("[PHASE12 OTP] SMS not configured. OTP will NOT be sent via SMS.");
+            logger.info("[PHASE12 OTP] Development mode — OTP sent to console only");
+            smsProviderService.sendSms(mobileNumber, smsMessage); // logs to console via mock
+            return "SMS not configured. Check your mobile number manually or contact admin.";
         }
+
+        // Twilio is configured — attempt real SMS
+        boolean sent = smsProviderService.sendSms(mobileNumber, smsMessage);
+        if (!sent) {
+            logger.error("[PHASE12 OTP] Twilio failed to send OTP to {}", maskNumber(mobileNumber));
+            throw new RuntimeException("Failed to send verification code. Please try again.");
+        }
+        logger.info("[PHASE12 OTP] Verification code sent via Twilio to {}", maskNumber(mobileNumber));
         return "Verification code sent to your mobile number.";
     }
 
